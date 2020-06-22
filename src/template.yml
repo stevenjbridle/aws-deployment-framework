@@ -415,6 +415,8 @@ Resources:
               - "arn:aws:s3:::serverlessrepo-aws-deplo-bootstraptemplatesbucket-*/*"
               - "arn:aws:s3:::adf-shared-modules-*-*"
               - "arn:aws:s3:::adf-shared-modules-*-*/*"
+              - !Sub "arn:aws:s3:::${AWS::StackName}*"
+              - !Sub "arn:aws:s3:::${AWS::StackName}*/*"
           - Effect: "Allow"
             Action:
               - "codebuild:*" 
