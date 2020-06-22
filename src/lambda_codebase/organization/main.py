@@ -61,8 +61,8 @@ class PhysicalResource:
 
 @create()
 def create_(_event: Mapping[str, Any], _context: Any) -> CloudFormationResponse:
-    if os.environ["AWS_REGION"] != 'us-east-1':
-        raise Exception("Deployment of ADF is only available via the us-east-1 region.")
+    if os.environ["AWS_REGION"] != 'ap-southeast-2':
+        raise Exception("Deployment of ADF is only available via the ap-southeast-2 region.")
     organization_id, created = ensure_organization()
     organization_root_id = get_organization_root_id()
     return PhysicalResource(

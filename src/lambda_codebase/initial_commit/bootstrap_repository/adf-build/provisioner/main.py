@@ -27,7 +27,7 @@ def main():
     LOGGER.info(f"Found {len(accounts)} account(s) in configuration file(s).")
     organizations = Organizations(boto3)
     all_accounts = organizations.get_accounts()
-    parameter_store = ParameterStore(os.environ.get('AWS_REGION', 'us-east-1'), boto3)
+    parameter_store = ParameterStore(os.environ.get('AWS_REGION', 'ap-southeast-2'), boto3)
     adf_role_name = parameter_store.fetch_parameter('cross_account_access_role')
     for account in accounts:
         try:
@@ -44,6 +44,7 @@ def create_or_update_account(org_session, account, adf_role_name, account_id=Non
     """
     if not account_id:
         LOGGER.info(f'Creating new account {account.full_name}')
+        account.full_name = str(account.full_name)
         account_id = org_session.create_account(account, adf_role_name)
     sts = STS()
     role = sts.assume_cross_account_role(

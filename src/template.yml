@@ -890,6 +890,27 @@ Resources:
       FunctionName: AccountHandler
       Runtime: python3.7
       Timeout: 300
+  CatchOrgEvent:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      CodeUri: lambda_codebase/catchorgevent
+      Description: "ADF Lambda Function - Catch ORG Event from US-EAST-1 for Step Function"
+      Policies:
+        - Version: "2012-10-17"
+          Statement: 
+            - Effect: Allow
+              Action:
+                - "states:StartExecution"
+                - "states:DescribeStateMachine"
+                - "states:DescribeExecution"
+              Resource: !Ref StateMachine
+      Environment:
+        Variables:
+          StepFunctionName: !Ref StateMachine
+      FunctionName: CatchOrgEvent
+      Runtime: python3.7
+      Timeout: 300
   PipelineCloudWatchEventRole:
       Type: AWS::IAM::Role
       Properties:
