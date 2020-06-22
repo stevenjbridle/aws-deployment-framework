@@ -13,7 +13,6 @@ def lambda_handler(event, context):
     print (event['Records'][0]['Sns']['Message'])
     response = client.start_execution(
         stateMachineArn='arn:aws:states:ap-southeast-2:003721114347:stateMachine:StateMachine-DCrYwXbrdLAa',
-        name="cloudwatchEvent03",
         input=event['Records'][0]['Sns']['Message']
         )
     print (response)

@@ -4,11 +4,7 @@ Description: |
 Parameters:
   SydneyRegionLambdaARN:
     Type: String
-    Default: arn:aws:lambda:ap-southeast-2:237895611803:function:CatchOrgEvent
-    Description: The ARN of the Lambda function that will forward events to StepFunctions
-  AccountNum:
-    Type: String
-    Default: 237895611803
+    Default: arn:aws:lambda:ap-southeast-2:591906314725:function:CatchOrgEvent
     Description: The ARN of the Lambda function that will forward events to StepFunctions
 
 Resources:
@@ -51,15 +47,42 @@ Resources:
         Id: MyTopicPolicy
         Version: '2012-10-17'
         Statement:
-        - Sid: cloudwatchEvent
+        - Sid: AllAccountEvent
           Effect: Allow
           Principal:
             AWS: "*"
-          Action: sns:*
-          Resource: "*"
-          Condition: 
+          Action: 
+            - SNS:GetTopicAttributes
+            - SNS:SetTopicAttributes
+            - SNS:AddPermission
+            - SNS:RemovePermission
+            - SNS:DeleteTopic
+            - SNS:Subscribe
+            - SNS:ListSubscriptionsByTopic
+            - SNS:Publish
+            - SNS:Receive
+          Resource: !Ref ADFSNSTopic
+          Condition:
             StringEquals:
-              AWS:SourceOwner: !Ref AccountNum  
+              aws:SourceAccount: !Ref "AWS::AccountId"
+        - Sid: cloudwatchEvent
+          Effect: Allow
+          Principal:
+            Service:
+            - 'events.amazonaws.com'
+          Action: 
+            - SNS:Publish
+          Resource: !Ref ADFSNSTopic
+          Condition:
+            StringEquals:
+              aws:SourceAccount: !Ref "AWS::AccountId"
       Topics:
       - !Ref ADFSNSTopic
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: "*"
+      Action: 'lambda:InvokeFunction'
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref ADFSNSTopic
   
