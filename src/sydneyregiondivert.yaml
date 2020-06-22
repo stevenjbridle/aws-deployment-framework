@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  CFN Stack for Amazon Deployment Framework to divert events to Sydney region
+Parameters:
+  SydneyRegionLambdaARN:
+    Type: String
+    Default: arn:aws:lambda:ap-southeast-2:237895611803:function:CatchOrgEvent
+    Description: The ARN of the Lambda function that will forward events to StepFunctions
+
+Resources:
+  CloudWatchEventsRule:
+    DependsOn: ADFSNSTopic
+    Type: "AWS::Events::Rule"
+    Properties: 
+      Description: Triggers StateMachine on Move OU
+      EventPattern:
+        source:
+          - aws.organizations
+        detail:
+          eventSource:
+            - organizations.amazonaws.com
+          eventName:
+            - MoveAccount
+      Targets:
+        - Arn: !Ref ADFSNSTopic
+       #   RoleArn: !GetAtt StatesExecutionRole.Arn
+          Id: CreateStackLinkedAccountV1
+
+  ADFSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: 'ADFForwardingSNS'
+      TopicName: 'ADFForwardingSNS'
+
+  ADFSNSSubscription:
+    Type: "AWS::SNS::Subscription"
+    DependsOn: ADFSNSTopic
+    Properties:
+      Endpoint: !Ref SydneyRegionLambdaARN
+      Protocol: LAMBDA #required
+      TopicArn: !Ref ADFSNSTopic  #required
