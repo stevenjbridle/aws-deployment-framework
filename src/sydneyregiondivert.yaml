@@ -6,6 +6,10 @@ Parameters:
     Type: String
     Default: arn:aws:lambda:ap-southeast-2:237895611803:function:CatchOrgEvent
     Description: The ARN of the Lambda function that will forward events to StepFunctions
+  AccountNum:
+    Type: String
+    Default: 237895611803
+    Description: The ARN of the Lambda function that will forward events to StepFunctions
 
 Resources:
   CloudWatchEventsRule:
@@ -39,3 +43,23 @@ Resources:
       Endpoint: !Ref SydneyRegionLambdaARN
       Protocol: LAMBDA #required
       TopicArn: !Ref ADFSNSTopic  #required
+  
+  ADFSNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyTopicPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: cloudwatchEvent
+          Effect: Allow
+          Principal:
+            AWS: "*"
+          Action: sns:*
+          Resource: "*"
+          Condition: 
+            StringEquals:
+              AWS:SourceOwner: !Ref AccountNum  
+      Topics:
+      - !Ref ADFSNSTopic
+  
