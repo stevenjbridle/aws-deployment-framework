@@ -6,13 +6,15 @@ The Org Event handler that is called by SNS in US-EAST-1 for Org Events (move) t
 """
 import json
 import boto3
+import os
 client = boto3.client('stepfunctions')
 
 def lambda_handler(event, context):
     # TODO implement
     print (event['Records'][0]['Sns']['Message'])
+    stateMachine = os.environ['StepFunctionName']
     response = client.start_execution(
-        stateMachineArn='arn:aws:states:ap-southeast-2:003721114347:stateMachine:StateMachine-DCrYwXbrdLAa',
+        stateMachineArn=stateMachine,
         input=event['Records'][0]['Sns']['Message']
         )
     print (response)
