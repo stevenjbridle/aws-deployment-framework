@@ -78,11 +78,5 @@ Resources:
               aws:SourceAccount: !Ref "AWS::AccountId"
       Topics:
       - !Ref ADFSNSTopic
-  LambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: "*"
-      Action: 'lambda:InvokeFunction'
-      Principal: sns.amazonaws.com
-      SourceArn: !Ref ADFSNSTopic
+
   

@@ -913,6 +913,14 @@ Resources:
       FunctionName: CatchOrgEvent
       Runtime: python3.7
       Timeout: 300
+  CatchOrgEventSNSPermission:
+    DependsOn: CatchOrgEvent
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CatchOrgEvent.arn
+      Action: 'lambda:InvokeFunction'
+      Principal: sns.amazonaws.com
+      
   PipelineCloudWatchEventRole:
       Type: AWS::IAM::Role
       Properties:
