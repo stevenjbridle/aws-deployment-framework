@@ -773,6 +773,16 @@ Resources:
                 - codebuild.amazonaws.com
                 - lambda.amazonaws.com
                 - cloudformation.amazonaws.com
+          - Action:
+              - s3:Get*
+              - s3:Put*
+              - s3:List*
+            Effect: Allow
+            Condition:
+              StringEquals:
+                aws:PrincipalOrgID: !GetAtt Organization.OrganizationId
+            Principal:
+              AWS: "*"
   SharedModulesBucketName:
     Type: AWS::SSM::Parameter
     Properties: 

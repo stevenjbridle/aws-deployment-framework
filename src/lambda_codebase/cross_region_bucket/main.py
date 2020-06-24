@@ -173,13 +173,12 @@ def ensure_bucket_encryption(bucket_name: str, region: str) -> None:
 
 def ensure_bucket_policy(bucket_name: str, region: str, policy: MutableMapping) -> None:
     s3_client = get_s3_client(region)
-    org_parameter = SSM_CLIENT.get_parameter(Name="organization_id")
     for action in policy["Statement"]:
         action["Resource"] = [
             "arn:aws:s3:::{0}".format(bucket_name),
             "arn:aws:s3:::{0}/*".format(bucket_name),
         ]
-        action["Condition"]={"StringEquals":{"aws:PrincipalOrgID": org_parameter}}
+
     s3_client.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps(policy))
 
 
