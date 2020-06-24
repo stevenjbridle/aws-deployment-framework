@@ -179,7 +179,7 @@ def ensure_bucket_policy(bucket_name: str, region: str, policy: MutableMapping) 
             "arn:aws:s3:::{0}".format(bucket_name),
             "arn:aws:s3:::{0}/*".format(bucket_name),
         ]
-        action["Condition"]={ "StringEquals"}:{"aws:PrincipalOrgID": org_parameter}
+        action["Condition"]={"StringEquals":{"aws:PrincipalOrgID": org_parameter}}
     s3_client.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps(policy))
 
 
