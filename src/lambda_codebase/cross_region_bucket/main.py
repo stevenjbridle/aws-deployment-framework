@@ -71,7 +71,7 @@ class PhysicalResource:
 def create_(event: Mapping[str, Any], _context: Any) -> CloudFormationResponse:
     region = determine_region(event)
     policy = event["ResourceProperties"].get("PolicyDocument")
-    print (policy)
+    print(policy)
     #added print statement to see format of policy. Policy needs org added
     bucket_name_prefix = event["ResourceProperties"]["BucketNamePrefix"]
     bucket_name, created = ensure_bucket(region, bucket_name_prefix)
