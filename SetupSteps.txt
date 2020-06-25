@@ -1,0 +1,23 @@
+Steps to setup ADF (assuming Cloud9 is being used)
+
+1. git clone git@github.com:stevenjbridle/aws-deployment-framework.git
+2. Update Cloud9 SAM to Latest version - https://jun711.github.io/aws/steps-to-update-aws-cloud9-sam-cli-to-latest-version/
+3. sam build
+4. Create S3 bucket in ap-southeast-2
+5. sam package \
+    --template-file .aws-sam/build/template.yaml \
+    --output-template-file packaged.yaml \
+    --s3-bucket 591906314725adfbuild
+
+Note - Give the stack name a lowercase name, it will make permissions creation easier
+Note - Make sure Account Alias is lowercase
+Note - S3 Bucket needs to be given Org access
+
+6 . sam deploy --template-file /home/ec2-user/environment/aws-deployment-framework/src/packaged.yaml --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM CAPABILITY_IAM --stack-name adfdev --parameter-overrides MainNotificationEndpoint=sbbridle@amazon.com DeploymentAccountName=ADFDeploymentAccount02 DeploymentAccountEmailAddress=sbbridle+02ADF@amazon.com DeploymentAccountAlias=adfdeploymentaccount02 DeploymentAccountMainRegion=ap-southeast-2 DeploymentAccountTargetRegions=ap-southeast-2 --region ap-southeast-2
+
+7. Deploy src/sydneyregiondivert.yaml to the US-East-1 Region - It will need to reference the Lambda function create in the SAM build steps
+8. Disable the CloudWatch event created in US-East-1 it will have a description of "Triggers StateMachine on Move OU". 
+9. Move the newly created Deployment account in AWS Organisations from the "deployment" OU back to root
+10. Enable the CloudWatch event that was disabled in step 8
+11. Move the newly creeated Deployment account back to the "deployment" OU in AWS Organisations
+ADF will now run the StepFunction statemachine and should be ready to go!
