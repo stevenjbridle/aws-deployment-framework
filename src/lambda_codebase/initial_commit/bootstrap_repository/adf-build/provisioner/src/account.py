@@ -17,7 +17,8 @@ class Account:
             delete_default_vpc=False,
             allow_direct_move_between_ou=False,
             allow_billing=True,
-            tags=None
+            tags=None,
+            parameters=None
     ):
         self.full_name = full_name
         self.email = email
@@ -31,6 +32,11 @@ class Account:
             self.tags = {}
         else:
             self.tags = tags
+        
+        if parameters is None:
+            self.parameters = {}
+        else:
+            self.parameters = parameters
 
     @classmethod
     def load_from_config(cls, config):
@@ -53,4 +59,7 @@ class Account:
                 True),
             tags=config.get(
                 "tags",
+                {}),
+            parameters=config.get(
+                "parameters",
                 {}))

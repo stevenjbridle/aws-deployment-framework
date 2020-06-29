@@ -1,0 +1,31 @@
+updates:
+  - pipeline: sample-server-deploy
+    targets:  # Deployment stages
+      - path: '735055453237'
+        cfns:
+          - properties:
+              stack_name: PREFIX-10-CFN-test
+              template_filename: PREFIX-10-CFN-test.yml
+              role: cloudteam-cloudformation-role-1
+          - properties:
+              stack_name: PREFIX-20-CFN-test
+              template_filename: PREFIX-20-CFN-test.yml
+          - properties:
+              stack_name: PREFIX-05-CFN-test
+              template_filename: PREFIX-05-CFN-test.yml
+              role: cloudteam-cloudformation-role-2
+  - pipeline: sample-network-deploy
+    targets:
+      - path: /deployment
+        cfns:
+          - properties:
+              stack_name: PREFIX-10-CFN-test
+              template_filename: PREFIX-10-CFN-test.yml
+              role: cloudteam-cloudformation-role-1
+          - properties:
+              stack_name: PREFIX-20-CFN-test
+              template_filename: PREFIX-20-CFN-test.yml
+          - properties:
+              stack_name: PREFIX-05-CFN-test
+              template_filename: PREFIX-05-CFN-test.yml
+              role: cloudteam-cloudformation-role-2

@@ -14,6 +14,7 @@ from organizations import Organizations
 from logger import configure_logger
 from parameter_store import ParameterStore
 from sts import STS
+import json
 
 
 LOGGER = configure_logger(__name__)
@@ -29,13 +30,19 @@ def main():
     all_accounts = organizations.get_accounts()
     parameter_store = ParameterStore(os.environ.get('AWS_REGION', 'ap-southeast-2'), boto3)
     adf_role_name = parameter_store.fetch_parameter('cross_account_access_role')
+    modified_accounts = []
     for account in accounts:
         try:
             account_id = next(acc["Id"] for acc in all_accounts if acc["Name"] == account.full_name)
         except StopIteration: # If the account does not exist yet..
             account_id = None
-        create_or_update_account(organizations, account, adf_role_name, account_id)
-
+    
+        account_id, modified = create_or_update_account(organizations, account, adf_role_name, account_id)
+        if modified:
+            modified_accounts.append(account_id)
+    
+    if modified_accounts:
+        send_accounts_modified_event(modified_accounts)
 
 def create_or_update_account(org_session, account, adf_role_name, account_id=None):
     """Creates or updates a single AWS account.
@@ -87,7 +94,33 @@ def create_or_update_account(org_session, account, adf_role_name, account_id=Non
     if account.tags:
         LOGGER.info(f'Ensuring tags exist for account {account_id}: {account.tags}')
         org_session.create_account_tags(account_id, account.tags)
+    
+    account_parameter_modified = []
+    if account.parameters:
+        LOGGER.info(f'Ensuring parameters exist in account {account_id}: {account.parameters}')
+        parameter_store_target_account = ParameterStore(os.environ.get('AWS_REGION', 'ap-southeast-2'), role)
+        for param in account.parameters:
+            for key, value in param.items():
+               account_parameter_modified.append(parameter_store_target_account.put_parameter('/account/' + key, value))
+    
+    return account_id, any(account_parameter_modified)
 
+def send_accounts_modified_event(accounts):
+    events = boto3.client('events')
+
+    detail = json.dumps({"accounts": accounts})
+    event_entry = [
+            {
+                "Source": "adf-accounts-updated",
+                "DetailType": "account-parameters-changed",
+                "Detail": detail
+            }
+        ]
+    LOGGER.info(f'Sending event {json.dumps(event_entry, indent=4)}')
+    response = events.put_events(
+        Entries=event_entry
+    )
+    LOGGER.info(response)
 
 def schedule_delete_default_vpc(account_id, region, role):
     """Schedule a delete_default_vpc on a thread

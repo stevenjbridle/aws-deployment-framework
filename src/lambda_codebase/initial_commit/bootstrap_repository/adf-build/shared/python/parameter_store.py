@@ -27,6 +27,7 @@ class ParameterStore:
     def put_parameter(self, name, value, tier='Standard'):
         """Puts a Parameter into Parameter Store
         """
+        modified = False
         try:
             current_value = self.fetch_parameter(name)
             assert current_value == value
@@ -41,6 +42,8 @@ class ParameterStore:
                 Overwrite=True,
                 Tier=tier
             )
+            modified = True
+        return modified
 
     def delete_parameter(self, name):
         try:

@@ -76,6 +76,7 @@ class S3:
 
     def read_object(self, key):
         s3_object = self.resource.Object(self.bucket, key)
+        print(f"Reading: {self.bucket}/{key}")
         return s3_object.get()['Body'].read().decode('utf-8')
 
     def fetch_s3_url(self, key):

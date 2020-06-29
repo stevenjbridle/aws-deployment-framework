@@ -1,0 +1,92 @@
+pipelines:
+  - name: sample-network-deploy  # The name of your pipeline (by default, this will match the name of your repository)
+    default_providers:
+      source:
+        provider: codecommit
+        properties:
+          account_id: '735055453237'
+      build:
+        provider: codebuild
+      deploy:
+        provider: cloudformation
+    params:
+        notification_endpoint: jlliddal+adf-network-pipeline@amazon.com # The Notification (user/team/slack) responsible for this pipeline
+        restart_execution_on_update: False
+    targets:  # Deployment stages
+      - path: '735055453237'
+        provider: cfn-series
+      #- path: '191269481282' # target the only other account in this org # will use action from type defined above,
+      #  stack_name: PREFIX-03-CFN-test
+      #  template_filename: PREFIX-03-CFN-test.yml
+      #  role: cloudteam-cloudformation-role-1
+  - name: sample-server-deploy  # The name of your pipeline (by default, this will match the name of your repository)
+    default_providers:
+      source:
+        provider: codecommit
+        properties:
+          account_id: '191269481282'
+      build:
+        provider: codebuild
+      deploy:
+        provider: cloudformation
+    params:
+        notification_endpoint: jlliddal+adf-server-pipeline@amazon.com # The Notification (user/team/slack) responsible for this pipeline
+        restart_execution_on_update: False
+    targets:  # Deployment stages testing
+      - path: '735055453237'
+        provider: cfn-series
+      #- path: '735055453237' # target the only other account in this org # will use action from type defined above,
+      #  stack_name: PREFIX-04-CFN-test
+      #  template_filename: PREFIX-04-CFN-test.yml
+      #  role: cloudteam-cloudformation-role-1
+  - name: sample-cloud-deploy  # The name of your pipeline (by default, this will match the name of your repository)
+    default_providers:
+      source:
+        provider: codecommit
+        properties:
+          account_id: '394469725684'
+      build:
+        provider: codebuild
+      deploy:
+        provider: cloudformation
+    params:
+        notification_endpoint: jlliddal+adf-network-pipeline@amazon.com # The Notification (user/team/slack) responsible for this pipeline
+        restart_execution_on_update: True
+    targets:  # Deployment stages
+      - path: [/deployment, /gw]
+        provider: cfn-series
+        cfns:
+          - properties:
+              stack_name: PREFIX-01-CFN-test
+              template_filename: PREFIX-01-CFN-test.yml
+              role: cloudteam-cloudformation-role-1
+          - properties:
+              stack_name: PREFIX-02-CFN-test
+              template_filename: PREFIX-02-CFN-test.yml
+              role: cloudteam-cloudformation-role-1
+          - properties:
+              stack_name: PREFIX-05-CFN-test
+              template_filename: PREFIX-05-CFN-test.yml
+              role: cloudteam-cloudformation-role-2
+      #- path: /other
+      #  provider: cfn-series
+      #  cfns:
+      #    - properties:
+      #        stack_name: PREFIX-01-CFN-test
+      #        template_filename: PREFIX-01-CFN-test.yml
+      #        role: cloudteam-cloudformation-role-1
+      #    - properties:
+      #        stack_name: PREFIX-02-CFN-test
+      #        template_filename: PREFIX-02-CFN-test.yml
+      #        role: cloudteam-cloudformation-role-1
+      #- path: /gw
+      #  provider: cfn-series
+      #  cfns:
+      #    - properties:
+      #        stack_name: PREFIX-01-CFN-test
+      #        template_filename: PREFIX-01-CFN-test.yml
+      #        role: cloudteam-cloudformation-role-1
+      #    - properties:
+      #        stack_name: PREFIX-02-CFN-test
+      #        template_filename: PREFIX-02-CFN-test.yml
+      #        role: cloudteam-cloudformation-role-1

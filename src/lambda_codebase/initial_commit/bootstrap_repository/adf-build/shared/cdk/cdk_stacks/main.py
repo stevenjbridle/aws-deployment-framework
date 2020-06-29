@@ -77,10 +77,15 @@ class PipelineStack(core.Stack):
                     stack_input['input']
                 ).build
             )
+
+        # per 'target array item' in configuration. i.e. if OU this might have many generated targets underneath it for each account
         for index, targets in enumerate(stack_input['input'].get('environments', {}).get('targets', [])):
             _actions = []
             top_level_deployment_type = stack_input['input'].get('default_providers', {}).get('deploy', {}).get('provider', '') or 'cloudformation'
             top_level_action = stack_input['input'].get('default_providers', {}).get('deploy', {}).get('properties', {}).get('action', '')
+            
+            target_cfn_series_run_order_override = 0
+            # per account
             for target in targets:
                 target_stage_override = target.get('provider') or top_level_deployment_type
                 if target.get('name') == 'approval' or target.get('provider', '') == 'approval':
@@ -116,7 +121,41 @@ class PipelineStack(core.Stack):
                     continue
                 regions = target.get('regions', [])
                 for region in regions:
-                    if 'cloudformation' in target_stage_override:
+                    if 'cfn-series' in target_stage_override:
+                        cfn_series = target.get('cfns', {})
+                        if cfn_series:
+                            target_original_properties = target.get('properties', {})
+                            LOGGER.info(f'Original properties {target_original_properties}')
+                            override_run_order = 1
+                            for cfn_target in cfn_series:
+                                
+                                target_merged_properties = {**target_original_properties, **cfn_target.get('properties')}
+                                target['properties'] = target_merged_properties
+
+                                LOGGER.info(f'Merged properties {target_merged_properties}')
+                                LOGGER.info(f'Target properties {target.get("properties", {})}')
+
+                                target_approval_mode = target.get('properties', {}).get('change_set_approval', False)
+                                _target_action_mode = target.get('properties', {}).get('action')
+                                action_mode = _target_action_mode or top_level_action
+                                if action_mode:
+                                    _actions.extend([
+                                        adf_codepipeline.Action(
+                                            name="{0}-{1}".format(target['name'], region),
+                                            provider="CloudFormation",
+                                            category="Deploy",
+                                            region=region,
+                                            target=target,
+                                            action_mode=action_mode,
+                                            run_order=1,
+                                            map_params=stack_input['input'],
+                                            action_name="{0}-{1}".format(target['name'], region)
+                                        ).config
+                                    ])
+                                    continue
+                                _actions.extend(adf_cloudformation.CloudFormation.generate_actions(target, region, stack_input['input'], target_approval_mode, override_run_order))
+                                override_run_order += 3 if target.get('properties', {}).get('change_set_approval') else 2
+                    elif 'cloudformation' in target_stage_override:
                         target_approval_mode = target.get('properties', {}).get('change_set_approval', False)
                         _target_action_mode = target.get('properties', {}).get('action')
                         action_mode = _target_action_mode or top_level_action
@@ -129,13 +168,13 @@ class PipelineStack(core.Stack):
                                     region=region,
                                     target=target,
                                     action_mode=action_mode,
-                                    run_order=1,
+                                    run_order=override_run_order, #1,
                                     map_params=stack_input['input'],
                                     action_name="{0}-{1}".format(target['name'], region)
                                 ).config
                             ])
                             continue
-                        _actions.extend(adf_cloudformation.CloudFormation.generate_actions(target, region, stack_input['input'], target_approval_mode))
+                        _actions.extend(adf_cloudformation.CloudFormation.generate_actions(target, region, stack_input['input'], target_approval_mode, None))
                     elif 'codedeploy' in target_stage_override:
                         _actions.extend([
                             adf_codepipeline.Action(

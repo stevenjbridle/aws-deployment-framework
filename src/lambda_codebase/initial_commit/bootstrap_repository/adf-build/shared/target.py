@@ -52,6 +52,7 @@ class Target:
         self.step_name = step.get('name', '')
         self.provider = step.get('provider', {})
         self.properties = step.get('properties', {})
+        self.cfns = step.get('cfns', {})
         self.regions = [regions] if not isinstance(regions, list) else regions
         self.target_structure = target_structure
         self.organizations = organizations
@@ -66,6 +67,7 @@ class Target:
             "name": re.sub(r'[^A-Za-z0-9.@\-_]+', '', name),
             "path": self.path,
             "properties": self.properties,
+            "cfns": self.cfns,
             "provider": self.provider,
             "regions": self.regions,
             "step_name": re.sub(r'[^A-Za-z0-9.@\-_]+', '', self.step_name)
