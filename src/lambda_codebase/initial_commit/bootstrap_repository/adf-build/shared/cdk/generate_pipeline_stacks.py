@@ -28,6 +28,8 @@ def main():
     _templates = glob.glob("cdk_inputs/*.json")
     for template_path in _templates:
         with open(template_path) as template:
+            LOGGER.info(f'Template path: {template_path} template(stack_input): {json.dumps(json.load(template), indent=4)}')
+        with open(template_path) as template:
             stack_input = json.load(template)
             app = core.App()
             PipelineStack(app, stack_input)

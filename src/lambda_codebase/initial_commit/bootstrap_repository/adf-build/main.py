@@ -133,6 +133,9 @@ def prepare_deployment_account(sts, deployment_account_id, config):
     deployment_account_parameter_store.put_parameter(
         'deployment_account_bucket', DEPLOYMENT_ACCOUNT_S3_BUCKET_NAME
     )
+    deployment_account_parameter_store.put_parameter(
+        'deployment_account_id', deployment_account_id
+    )
     auto_create_repositories = config.config.get(
         'scm', {}).get('auto-create-repositories')
     if auto_create_repositories is not None:
@@ -170,6 +173,7 @@ def worker_thread(
     in which CloudFormation create_stack is called
     """
     LOGGER.debug("%s - Starting new worker thread", account_id)
+    print("%s - Starting new worker thread", account_id)
 
     organizations = Organizations(
         role=boto3,
@@ -187,6 +191,8 @@ def worker_thread(
         [],  # Initial empty array to hold OU Path,
         cache
     )
+
+    print(f"Account path {account_path} for OU {ou_id}")
     try:
         role = ensure_generic_account_can_be_setup(
             sts,
@@ -204,6 +210,8 @@ def worker_thread(
                 'kms_arn', updated_kms_bucket_dict[region]['kms'])
             parameter_store.put_parameter(
                 'bucket_name', updated_kms_bucket_dict[region]['s3_regional_bucket'])
+
+            print(f"S3 path = adf-bootstrap/{account_path}")
             cloudformation = CloudFormation(
                 region=region,
                 deployment_account_region=config.deployment_account_region,
@@ -283,6 +291,7 @@ def main():  # pylint: disable=R0915
                 s3_key_path="adf-bootstrap/" + account_path,
                 account_id=deployment_account_id
             )
+            print(f"Creating adf-bootstrap/{account_path}")
             cloudformation.create_stack()
             update_deployment_account_output_parameters(
                 deployment_account_region=config.deployment_account_region,
@@ -292,6 +301,7 @@ def main():  # pylint: disable=R0915
                 cloudformation=cloudformation
             )
             if region == config.deployment_account_region:
+                print(f"Creating iam stack")
                 cloudformation.create_iam_stack()
 
         # Updating the stack on the master account in deployment region
@@ -305,6 +315,7 @@ def main():  # pylint: disable=R0915
             s3_key_path='adf-build',
             account_id=ACCOUNT_ID
         )
+        print("Creating adf-build")
         cloudformation.create_stack()
         threads = []
         account_ids = [account_id["Id"]

@@ -7,6 +7,7 @@
 import random
 import re
 import os
+import json
 
 from botocore.exceptions import WaiterError, ClientError
 from botocore.config import Config
@@ -78,11 +79,13 @@ class StackProperties:
 
     def get_parameters(self):
         try:
-            key = self.s3.fetch_s3_url(
-                self._create_parameter_path(self.s3_key_path)
-            )
-            return self.s3.read_object(key) if key else []
-        except ClientError:
+            #key = self.s3.fetch_s3_url(
+            #    self._create_parameter_path(self.s3_key_path)
+            #)
+            key = self._create_parameter_path(self.s3_key_path)
+            return json.loads(self.s3.read_object(key)) if key else []
+        except ClientError as e:
+            print(e)
             return []
 
     def _get_stack_name(self):
@@ -180,8 +183,11 @@ class CloudFormation(StackProperties):
         """Creates a Cloudformation change set from a template
         """
         LOGGER.debug("%s - calling _create_change_set for %s", self.account_id, self.stack_name)
+        print(f"{self.account_id} - calling create change_set for {self.stack_name}")
         try:
             self.template_url = self.template_url if self.template_url is not None else self.get_template_url()
+            print(f"Account: {self.account_id} Template: {self.template_url} Parameters: {self.parameters if self.parameters is not None else self.get_parameters()}")
+
             if self.template_url:
                 self.validate_template()
                 self.client.create_change_set(

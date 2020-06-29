@@ -1,0 +1,14 @@
+updates:
+- pipeline: sample-network-deploy
+  targets:
+  - cfns:
+    - properties:
+        stack_name: PREFIX-15-CFN-test
+        template_filename: PREFIX-15-CFN-test.yml
+    - properties:
+        stack_name: PREFIX-88-CFN-test
+        template_filename: PREFIX-88-CFN-test.yml
+    - properties:
+        stack_name: PREFIX-03-CFN-test
+        template_filename: PREFIX-03-CFN-test.yml
+    path: '735055453237'

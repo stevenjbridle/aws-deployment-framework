@@ -61,7 +61,9 @@ class Parameters:
 
     def create_parameter_files(self):
         for account, ou in self.account_ous.items():
+            print(f"account {account} ou {ou}")
             for region in self.regions:
+                print(f'region {region}')
                 compare_params = self._param_updater(
                     Parameters._parse("{0}/params/{1}".format(self.cwd, account)),
                     Parameters._parse("{0}/params/{1}".format(self.cwd, "{0}_{1}".format(account, region)))
@@ -73,10 +75,16 @@ class Parameters:
                         compare_params
                     )
                     # Compare account_region final to ou
+                    print(f'Comparing OU {self.cwd}/params{ou}')
+                    #compare_params = self._param_updater(
+                    #    Parameters._parse("{0}/params/{1}".format(self.cwd, ou)),
+                    #    compare_params
+                    #)
                     compare_params = self._param_updater(
-                        Parameters._parse("{0}/params/{1}".format(self.cwd, ou)),
+                        Parameters._parse("{0}/params{1}".format(self.cwd, ou)),
                         compare_params
                     )
+                    print(f'{json.dumps(compare_params)}')
                 # Compare account_region final to deployment_account_region
                 compare_params = self._param_updater(
                     Parameters._parse("{0}/params/global_{1}".format(self.cwd, region)),
