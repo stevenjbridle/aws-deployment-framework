@@ -59,12 +59,15 @@ def main():
         if file not in 'buildspec.yml':
             # get the first section
             # account_name|ou # stack_name #
-            # 735055453237_PREFIX-03-CFN-test
+            # absweb_735055453237_PREFIX-03-CFN-test
             
             name_pieces = file[:-4].split('_')
-            target_path = name_pieces[0]
-            cfn_name = "adf-{0}-{1}".format(name_pieces[0], name_pieces[1])
-            
+            account_name = name_pieces[0]
+            target_path = name_pieces[1]
+
+            cfn_name_suffix = name_pieces[2]
+            cfn_name = "adf-{0}-{1}".format(account_name, cfn_name_suffix)
+
             props = {
                 "properties": {
                     "stack_name": cfn_name, 
